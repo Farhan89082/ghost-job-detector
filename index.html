@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghost Job Detector</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Tokens ─────────────────────────────────────────── */
+    :root {
+      --bg:        #f5f3ee;
+      --bg2:       #ede9e1;
+      --surface:   #ffffff;
+      --border:    #d8d3c8;
+      --border2:   #c8c3b5;
+      --ink:       #1a1814;
+      --ink2:      #5a5650;
+      --ink3:      #9a9590;
+      --accent:    #c84b2f;
+      --accent-bg: #fdf1ee;
+      --red:       #c84b2f;
+      --red-bg:    #fdf1ee;
+      --red-border:#f0c4bb;
+      --orange:    #c47a1e;
+      --orange-bg: #fdf6ec;
+      --orange-border:#e8d4a0;
+      --yellow:    #9a7d1a;
+      --yellow-bg: #fdfaec;
+      --yellow-border:#e0d4a0;
+      --green:     #2d7a4f;
+      --green-bg:  #eef8f2;
+      --green-border:#b0dfc0;
+      --blue:      #2255aa;
+      --blue-bg:   #eef3fc;
+      --serif:     'Instrument Serif', Georgia, serif;
+      --sans:      'Manrope', system-ui, sans-serif;
+      --mono:      'IBM Plex Mono', monospace;
+      --r:         10px;
+    }
+
+    /* ── Reset ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.6; }
+
+    /* ── Header ─────────────────────────────────────────── */
+    header {
+      position: sticky; top: 0; z-index: 80;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 60px;
+    }
+    .logo { display: flex; align-items: center; gap: 0.6rem; font-family: var(--serif); font-size: 1.3rem; color: var(--ink); text-decoration: none; }
+    .logo-ghost { font-size: 1.4rem; }
+    .logo small { font-family: var(--mono); font-size: 0.65rem; color: var(--ink3); font-style: normal; }
+    .header-nav { display: flex; gap: 1.5rem; }
+    .header-nav a { font-size: 0.8rem; font-weight: 600; color: var(--ink2); text-decoration: none; letter-spacing: 0.03em; transition: color .15s; }
+    .header-nav a:hover { color: var(--accent); }
+
+    /* ── Hero ───────────────────────────────────────────── */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 5rem 2rem 3.5rem;
+      text-align: center;
+    }
+    .hero-kicker {
+      display: inline-block;
+      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent);
+      border: 1px solid var(--red-border);
+      background: var(--red-bg);
+      padding: 0.3rem 0.8rem; border-radius: 100px;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-family: var(--serif); font-size: clamp(2.8rem, 6vw, 4.8rem);
+      font-weight: 400; line-height: 1.08; letter-spacing: -0.01em;
+      color: var(--ink); margin-bottom: 1.25rem;
+    }
+    h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--ink2); max-width: 560px; margin: 0 auto 2.5rem;
+      line-height: 1.75; font-weight: 400;
+    }
+
+    /* ── Disclaimer banner ──────────────────────────────── */
+    .disclaimer {
+      max-width: 720px; margin: 0 auto 2.5rem;
+      background: var(--blue-bg);
+      border: 1px solid #c0d0f0;
+      border-radius: var(--r);
+      padding: 1rem 1.25rem;
+      display: flex; gap: 0.75rem; align-items: flex-start;
+      font-size: 0.82rem; color: var(--blue); line-height: 1.6;
+    }
+    .disclaimer-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
+
+    /* ── Upload card ────────────────────────────────────── */
+    #uploadSection { max-width: 720px; margin: 0 auto; }
+    .upload-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .drop-zone {
+      border: 2px dashed var(--border2); border-radius: 12px; margin: 1.5rem;
+      padding: 2.5rem 2rem; text-align: center; cursor: pointer;
+      transition: all .2s; background: var(--bg);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent); background: var(--red-bg);
+    }
+    .drop-icon { font-size: 2rem; display: block; margin-bottom: 0.75rem; }
+    .drop-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+    .drop-sub { font-family: var(--mono); font-size: 0.75rem; color: var(--ink3); }
+    #fileInput { display: none; }
+    .upload-footer {
+      background: var(--bg); border-top: 1px solid var(--border);
+      padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1.25rem; border-radius: 8px;
+      font-family: var(--sans); font-weight: 700; font-size: 0.85rem;
+      cursor: pointer; border: none; transition: all .15s; text-decoration: none;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #b03a20; transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--ink2); }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    .csv-schema {
+      padding: 0 1.5rem 1.5rem;
+    }
+    .csv-schema h4 {
+      font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 0.75rem;
+    }
+    .schema-row {
+      display: grid; grid-template-columns: 130px 1fr auto;
+      gap: 0.5rem; align-items: center;
+      padding: 0.4rem 0; border-bottom: 1px solid var(--bg2);
+      font-family: var(--mono); font-size: 0.78rem;
+    }
+    .schema-row:last-child { border-bottom: none; }
+    .schema-col { color: var(--accent); font-weight: 500; }
+    .schema-ex { color: var(--ink3); }
+    .badge { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; }
+    .badge-req { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .badge-opt { background: var(--bg2); color: var(--ink3); border: 1px solid var(--border); }
+
+    /* ── Progress ───────────────────────────────────────── */
+    #progressSection { display: none; max-width: 720px; margin: 0 auto; }
+    .progress-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 2rem 2rem 1.75rem;
+    }
+    .progress-head { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border2); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-label { font-weight: 700; }
+    .progress-track {
+      background: var(--bg2); border-radius: 100px; height: 5px; overflow: hidden; margin-bottom: 0.6rem;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--accent), #e07050);
+      transition: width .5s ease;
+    }
+    .progress-note { font-family: var(--mono); font-size: 0.72rem; color: var(--ink3); }
+
+    /* ── Results section ────────────────────────────────── */
+    #resultsSection { display: none; max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+
+    .results-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+    }
+    .results-heading { font-family: var(--serif); font-size: 1.8rem; font-weight: 400; }
+    .results-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+    /* Summary grid */
+    .summary-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 0.75rem; margin-bottom: 2rem;
+    }
+    .scard {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1rem 1.1rem;
+    }
+    .scard-num { font-family: var(--serif); font-size: 2.4rem; line-height: 1; margin-bottom: 0.2rem; }
+    .scard-label { font-size: 0.72rem; color: var(--ink3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .scard.red    { border-top: 3px solid var(--red);    } .scard.red    .scard-num { color: var(--red); }
+    .scard.orange { border-top: 3px solid var(--orange); } .scard.orange .scard-num { color: var(--orange); }
+    .scard.yellow { border-top: 3px solid var(--yellow); } .scard.yellow .scard-num { color: var(--yellow); }
+    .scard.green  { border-top: 3px solid var(--green);  } .scard.green  .scard-num { color: var(--green); }
+    .scard.gray   { border-top: 3px solid var(--ink3);   } .scard.gray   .scard-num { color: var(--ink2); }
+
+    /* Filter bar */
+    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center; }
+    .filter-chip {
+      font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.85rem;
+      border-radius: 100px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--ink2);
+      cursor: pointer; transition: all .15s; font-family: var(--sans);
+    }
+    .filter-chip:hover { border-color: var(--ink2); }
+    .filter-chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .search-box {
+      margin-left: auto; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.35rem 0.85rem;
+      font-family: var(--mono); font-size: 0.78rem; color: var(--ink);
+      outline: none; width: 220px; transition: border .15s;
+    }
+    .search-box:focus { border-color: var(--accent); }
+    .search-box::placeholder { color: var(--ink3); }
+
+    /* Job cards */
+    .jobs-list { display: flex; flex-direction: column; gap: 0.85rem; }
+    .jcard {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      animation: fadeUp .35s ease both;
+      transition: box-shadow .15s;
+    }
+    .jcard:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+    .jcard:nth-child(1){animation-delay:.04s} .jcard:nth-child(2){animation-delay:.08s}
+    .jcard:nth-child(3){animation-delay:.12s} .jcard:nth-child(4){animation-delay:.16s}
+    .jcard:nth-child(n+5){animation-delay:.2s}
+
+    .jcard-body { padding: 1.25rem 1.5rem; display: flex; gap: 1.25rem; align-items: flex-start; }
+    .jcard-main { flex: 1; min-width: 0; }
+    .jcard-title { font-weight: 700; font-size: 1rem; margin-bottom: 0.2rem; }
+    .jcard-meta {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      font-family: var(--mono); font-size: 0.72rem; color: var(--ink3);
+      margin-bottom: 0.75rem;
+    }
+    .jcard-meta span { display: flex; align-items: center; gap: 0.2rem; }
+
+    /* Tag row */
+    .tag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.65rem; }
+    .tag {
+      font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.55rem;
+      border-radius: 5px; border: 1px solid; letter-spacing: 0.02em;
+      font-family: var(--mono); text-transform: uppercase;
+    }
+    .tag-dup    { background: #f0ebff; color: #6633cc; border-color: #d0c0ff; }
+    .tag-repost { background: #fff0e0; color: #994400; border-color: #ffd090; }
+    .tag-scam   { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+
+    /* Signals */
+    .signals { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .sig {
+      font-size: 0.68rem; font-family: var(--mono); padding: 0.2rem 0.6rem;
+      border-radius: 5px; border: 1px solid;
+    }
+    .sig-on  { background: var(--red-bg); color: var(--red); border-color: var(--red-border); }
+    .sig-off { background: var(--bg); color: var(--ink3); border-color: var(--border); }
+
+    /* Score badge */
+    .score-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; flex-shrink: 0; }
+    .score-ring { position: relative; width: 62px; height: 62px; }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-ring .ring-track { fill: none; stroke: var(--bg2); stroke-width: 5; }
+    .score-ring .ring-fill  { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset .8s ease; }
+    .score-num {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.95rem; font-family: var(--sans);
+    }
+    .verdict-label { font-size: 0.6rem; font-weight: 800; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.05em; text-align: center; }
+    .confidence-pill {
+      font-size: 0.6rem; font-family: var(--mono); padding: 0.1rem 0.4rem;
+      border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .conf-HIGH   { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+    .conf-MEDIUM { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border); }
+    .conf-LOW    { background: var(--bg2); color: var(--ink3); border-color: var(--border); }
+
+    /* Evidence / caveats drawer */
+    .jcard-footer {
+      border-top: 1px solid var(--bg2);
+      background: var(--bg);
+    }
+    .drawer-toggle {
+      width: 100%; background: none; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.65rem 1.5rem;
+      font-family: var(--mono); font-size: 0.72rem; color: var(--ink3);
+      transition: color .15s;
+    }
+    .drawer-toggle:hover { color: var(--ink); }
+    .drawer-arrow { transition: transform .2s; }
+    .drawer-arrow.open { transform: rotate(180deg); }
+    .drawer-content {
+      display: none; padding: 0 1.5rem 1.1rem;
+    }
+    .drawer-content.open { display: block; }
+    .drawer-section { margin-bottom: 0.75rem; }
+    .drawer-section:last-child { margin-bottom: 0; }
+    .drawer-label {
+      font-family: var(--mono); font-size: 0.65rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 0.35rem;
+    }
+    .drawer-list { list-style: none; }
+    .drawer-list li {
+      font-size: 0.8rem; color: var(--ink2); padding: 0.15rem 0;
+      display: flex; gap: 0.4rem; align-items: flex-start; line-height: 1.5;
+    }
+    .drawer-list li::before { content: '·'; color: var(--ink3); flex-shrink: 0; }
+    .evidence-item::before  { content: '✓'; color: var(--green); flex-shrink: 0; }
+    .caveat-item::before    { content: '!'; color: var(--orange); flex-shrink: 0; }
+    .reason-item::before    { content: '⚑'; color: var(--red); flex-shrink: 0; font-size: 0.65rem; }
+    .scam-item::before      { content: '⚠'; color: var(--red); flex-shrink: 0; }
+
+    /* ── Why Ghost Jobs panel ───────────────────────────── */
+    #whySection {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 4rem 2rem;
+    }
+    .why-inner { max-width: 980px; margin: 0 auto; }
+    .why-header { text-align: center; margin-bottom: 3rem; }
+    .why-kicker {
+      font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--ink3); margin-bottom: 0.75rem;
+    }
+    .why-title {
+      font-family: var(--serif); font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 400; line-height: 1.15; margin-bottom: 1rem;
+    }
+    .why-sub { color: var(--ink2); max-width: 540px; margin: 0 auto; font-size: 0.95rem; line-height: 1.75; }
+    .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+    .why-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem;
+    }
+    .why-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
+    .why-card-title { font-weight: 700; font-size: 0.95rem; line-height: 1.4; }
+    .why-prevalence {
+      font-family: var(--mono); font-size: 0.62rem; color: var(--ink3);
+      background: var(--bg2); border: 1px solid var(--border);
+      padding: 0.15rem 0.5rem; border-radius: 4px; flex-shrink: 0; margin-left: 0.5rem; margin-top: 0.1rem;
+      white-space: nowrap;
+    }
+    .why-card p { font-size: 0.85rem; color: var(--ink2); line-height: 1.7; }
+
+    /* ── Footer ─────────────────────────────────────────── */
+    footer {
+      background: var(--ink); color: rgba(255,255,255,0.5);
+      padding: 2rem; text-align: center;
+      font-size: 0.8rem; font-family: var(--mono);
+    }
+    footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    /* ── Toast ──────────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--ink); color: #fff;
+      border-radius: 10px; padding: 0.75rem 1.25rem;
+      font-size: 0.83rem; z-index: 200;
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s ease;
+    }
+    .toast.show { transform: none; opacity: 1; }
+
+    /* ── Empty state ────────────────────────────────────── */
+    .empty { text-align: center; padding: 3rem 2rem; color: var(--ink3); }
+    .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 3rem 1rem 2.5rem; }
+      #resultsSection { padding: 2rem 1rem 4rem; }
+      .jcard-body { flex-direction: column-reverse; }
+      .score-wrap { flex-direction: row; align-self: flex-start; }
+      header { padding: 0 1rem; }
+      .header-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo" onclick="scrollToTop()">
+    <span class="logo-ghost">👻</span>
+    Ghost Job Detector
+    <small>v2.0</small>
+  </a>
+  <nav class="header-nav">
+    <a href="#uploadSection">Analyze</a>
+    <a href="#whySection">Why Ghost Jobs?</a>
+    <a href="https://github.com" target="_blank">GitHub ↗</a>
+  </nav>
+</header>
+
+<!-- ── HERO ────────────────────────────────────────────── -->
+<section class="hero">
+  <span class="hero-kicker">Job Market Transparency Tool</span>
+  <h1>Detect <em>ghost jobs</em><br>before they waste your time</h1>
+  <p class="hero-sub">
+    Upload a CSV of job listings. We cross-reference each one against the company's
+    official careers page and score it for ghost-job likelihood — with evidence
+    and confidence levels, not false certainty.
+  </p>
+
+  <div class="disclaimer">
+    <span class="disclaimer-icon">ℹ️</span>
+    <span>
+      <strong>This tool flags risks, not facts.</strong>
+      A high score means "worth investigating," not "definitely fake."
+      Legitimate jobs can be absent from a company website if they use a third-party ATS,
+      syndicate through agencies, or have a temporary listing gap.
+      Always verify independently before deciding not to apply.
+    </span>
+  </div>
+
+  <!-- Upload -->
+  <div id="uploadSection">
+    <div class="upload-card">
+      <div class="drop-zone" id="dropZone">
+        <span class="drop-icon">📂</span>
+        <div class="drop-title">Drop your CSV file here</div>
+        <div class="drop-sub">or click to browse — .csv files only · max 200 rows</div>
+        <input type="file" id="fileInput" accept=".csv" />
+      </div>
+
+      <div class="csv-schema">
+        <h4>Expected columns</h4>
+        <div class="schema-row">
+          <span class="schema-col">title</span>
+          <span class="schema-ex">Senior Software Engineer</span>
+          <span class="badge badge-req">Required</span>
+        </div>
+        <div class="schema-row">
+          <span class="schema-col">company</span>
+          <span class="schema-ex">Acme Corp</span>
+          <span class="badge badge-req">Required</span>
+        </div>
+        <div class="schema-row">
+          <span class="schema-col">location</span>
+          <span class="schema-ex">New York, NY</span>
+          <span class="badge badge-opt">Optional</span>
+        </div>
+        <div class="schema-row">
+          <span class="schema-col">posted_date</span>
+          <span class="schema-ex">2024-12-01</span>
+          <span class="badge badge-opt">Optional</span>
+        </div>
+        <div class="schema-row">
+          <span class="schema-col">apply_link</span>
+          <span class="schema-ex">https://company.com/apply/…</span>
+          <span class="badge badge-opt">Optional</span>
+        </div>
+        <div class="schema-row">
+          <span class="schema-col">description</span>
+          <span class="schema-ex">Full job description text</span>
+          <span class="badge badge-opt">Scam check</span>
+        </div>
+      </div>
+
+      <div class="upload-footer">
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+          <button class="btn btn-primary" id="analyzeBtn" disabled>🔍 Analyze Jobs</button>
+          <button class="btn btn-secondary" id="demoBtn">✨ Try Demo Data</button>
+        </div>
+        <a href="data/samples/sample_jobs.csv" download class="btn btn-secondary" style="font-size:0.78rem">
+          ⬇ Download sample CSV
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div id="progressSection">
+    <div class="progress-card">
+      <div class="progress-head">
+        <div class="spinner"></div>
+        <div class="progress-label" id="progressLabel">Analyzing job listings…</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="progress-note" id="progressNote">Starting…</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── RESULTS ──────────────────────────────────────────── -->
+<div id="resultsSection">
+  <div class="results-topbar">
+    <div class="results-heading">Analysis Results</div>
+    <div class="results-actions">
+      <button class="btn btn-secondary" id="exportBtn">⬇ Export CSV</button>
+      <button class="btn btn-secondary" id="resetBtn">↩ New Upload</button>
+    </div>
+  </div>
+
+  <div class="summary-grid" id="summaryGrid"></div>
+
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-chip active" data-filter="all">All</button>
+    <button class="filter-chip" data-filter="HIGH RISK">🔴 High Risk</button>
+    <button class="filter-chip" data-filter="SUSPICIOUS">🟠 Suspicious</button>
+    <button class="filter-chip" data-filter="LOW RISK">🟡 Low Risk</button>
+    <button class="filter-chip" data-filter="LIKELY REAL">🟢 Likely Real</button>
+    <button class="filter-chip" data-filter="scam">⚠ Scam Flags</button>
+    <button class="filter-chip" data-filter="duplicate">🔁 Duplicates</button>
+    <input class="search-box" id="searchBox" type="text" placeholder="Search title or company…" />
+  </div>
+
+  <div class="jobs-list" id="jobsList"></div>
+</div>
+
+<!-- ── WHY GHOST JOBS ───────────────────────────────────── -->
+<section id="whySection">
+  <div class="why-inner">
+    <div class="why-header">
+      <div class="why-kicker">Understanding the Problem</div>
+      <h2 class="why-title">Why do companies post<br><em style="font-style:italic">ghost jobs?</em></h2>
+      <p class="why-sub">
+        Ghost jobs aren't always outright fraud — but they give job seekers false hope,
+        waste time, and distort the apparent state of the market. Here's why it happens.
+      </p>
+    </div>
+    <div class="why-grid" id="whyGrid">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>
+    Ghost Job Detector is open source and free to use.
+    <a href="https://github.com" target="_blank">View on GitHub ↗</a>
+    &nbsp;·&nbsp;
+    Scores are probabilistic estimates, not verdicts.
+    Always investigate before deciding not to apply.
+  </p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────
+const API = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
+
+// ── State ───────────────────────────────────────────────
+let allResults = [];
+let currentFilter = 'all';
+let currentJobId = null;
+let selectedFile = null;
+
+// ── Colour helpers ──────────────────────────────────────
+const COLOR = {
+  red:    { hex: '#c84b2f', bg: '#fdf1ee', border: '#f0c4bb' },
+  orange: { hex: '#c47a1e', bg: '#fdf6ec', border: '#e8d4a0' },
+  yellow: { hex: '#9a7d1a', bg: '#fdfaec', border: '#e0d4a0' },
+  green:  { hex: '#2d7a4f', bg: '#eef8f2', border: '#b0dfc0' },
+};
+
+// ── Upload interactions ─────────────────────────────────
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const analyzeBtn = document.getElementById('analyzeBtn');
+
+dropZone.addEventListener('click', () => fileInput.click());
+['dragover','dragenter'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); dropZone.classList.add('drag-over'); }));
+['dragleave','dragend'].forEach(e => dropZone.addEventListener(e, () => dropZone.classList.remove('drag-over')));
+dropZone.addEventListener('drop', ev => {
+  ev.preventDefault(); dropZone.classList.remove('drag-over');
+  const f = ev.dataTransfer.files[0];
+  if (f?.name.endsWith('.csv')) selectFile(f);
+  else toast('Please drop a .csv file');
+});
+fileInput.addEventListener('change', () => fileInput.files[0] && selectFile(fileInput.files[0]));
+
+function selectFile(f) {
+  selectedFile = f;
+  dropZone.querySelector('.drop-title').textContent = `📄 ${f.name}`;
+  dropZone.querySelector('.drop-sub').textContent = `${(f.size/1024).toFixed(1)} KB selected — ready to analyze`;
+  analyzeBtn.disabled = false;
+}
+
+analyzeBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  const fd = new FormData();
+  fd.append('file', selectedFile);
+  try {
+    const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.error) { toast('❌ ' + data.error); return; }
+    currentJobId = data.job_id;
+    showProgress(data.jobs_found);
+    pollStatus();
+  } catch (e) {
+    toast('❌ Cannot reach backend. Make sure Flask is running on port 5000.');
+  }
+});
+
+document.getElementById('demoBtn').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API}/api/demo`);
+    renderResults(await res.json());
+  } catch {
+    renderResults(embeddedDemo());
+  }
+});
+
+// ── Progress ────────────────────────────────────────────
+function showProgress(total) {
+  document.getElementById('uploadSection').style.display = 'none';
+  document.getElementById('progressSection').style.display = 'block';
+  document.getElementById('progressNote').textContent = `0 of ${total} checked…`;
+}
+
+async function pollStatus() {
+  if (!currentJobId) return;
+  try {
+    const data = await fetch(`${API}/api/status/${currentJobId}`).then(r => r.json());
+    const pct = data.total ? Math.round(data.progress / data.total * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressNote').textContent =
+      data.current_job
+        ? `Checking ${data.progress} of ${data.total}: "${data.current_job}"`
+        : `${data.progress} of ${data.total} checked…`;
+
+    if (data.status === 'complete') {
+      const r = await fetch(`${API}/api/results/${currentJobId}`).then(r => r.json());
+      renderResults(r);
+    } else if (data.status === 'error') {
+      toast('❌ Analysis failed: ' + data.error);
+      resetUI();
+    } else {
+      setTimeout(pollStatus, 1500);
+    }
+  } catch { setTimeout(pollStatus, 3000); }
+}
+
+// ── Render results ──────────────────────────────────────
+function renderResults(data) {
+  document.getElementById('progressSection').style.display = 'none';
+  document.getElementById('uploadSection').style.display = 'none';
+  allResults = data.results || [];
+  renderSummary(data.summary || {});
+  renderJobs();
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderSummary(s) {
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="scard gray"><div class="scard-num">${s.total ?? allResults.length}</div><div class="scard-label">Total checked</div></div>
+    <div class="scard red"><div class="scard-num">${s.high_risk ?? 0}</div><div class="scard-label">High risk</div></div>
+    <div class="scard orange"><div class="scard-num">${s.suspicious ?? 0}</div><div class="scard-label">Suspicious</div></div>
+    <div class="scard yellow"><div class="scard-num">${s.low_risk ?? 0}</div><div class="scard-label">Low risk</div></div>
+    <div class="scard green"><div class="scard-num">${s.likely_real ?? 0}</div><div class="scard-label">Likely real</div></div>
+    <div class="scard gray"><div class="scard-num">${s.duplicates ?? 0}</div><div class="scard-label">Duplicates</div></div>
+    <div class="scard gray"><div class="scard-num">${s.reposts ?? 0}</div><div class="scard-label">Reposts</div></div>
+    <div class="scard gray"><div class="scard-num">${s.scam_flags ?? 0}</div><div class="scard-label">Scam flags</div></div>
+  `;
+}
+
+function renderJobs() {
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  let jobs = allResults;
+
+  if (currentFilter === 'scam')     jobs = jobs.filter(j => j.scam_indicators?.length);
+  else if (currentFilter === 'duplicate') jobs = jobs.filter(j => j.duplicate_info?.is_duplicate || j.duplicate_info?.is_repost);
+  else if (currentFilter !== 'all') jobs = jobs.filter(j => j.verdict === currentFilter);
+
+  if (search) jobs = jobs.filter(j =>
+    (j.title||'').toLowerCase().includes(search) ||
+    (j.company||'').toLowerCase().includes(search)
+  );
+
+  const list = document.getElementById('jobsList');
+  if (!jobs.length) {
+    list.innerHTML = `<div class="empty"><span class="empty-icon">🔍</span>No jobs match your filter.</div>`;
+    return;
+  }
+
+  list.innerHTML = jobs.map((job, idx) => jobCardHTML(job, idx)).join('');
+
+  // Attach drawer toggles
+  list.querySelectorAll('.drawer-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const content = btn.nextElementSibling;
+      const arrow = btn.querySelector('.drawer-arrow');
+      content.classList.toggle('open');
+      arrow.classList.toggle('open');
+    });
+  });
+}
+
+function jobCardHTML(job, idx) {
+  const c    = COLOR[job.verdict_color] || COLOR.green;
+  const r    = 25;
+  const circ = 2 * Math.PI * r;
+  const off  = circ - (job.ghost_score / 100) * circ;
+
+  const signals    = job.signals || [];
+  const onSigs     = signals.filter(s => s.triggered);
+  const offSigs    = signals.filter(s => !s.triggered);
+  const reasons    = job.reasons || [];
+  const evidence   = job.evidence || [];
+  const caveats    = job.caveats || [];
+  const scam       = job.scam_indicators || [];
+  const dupeInfo   = job.duplicate_info || {};
+  const hasDrawer  = reasons.length || evidence.length || caveats.length || scam.length;
+
+  const tags = [
+    dupeInfo.is_duplicate ? `<span class="tag tag-dup">🔁 Duplicate</span>` : '',
+    dupeInfo.is_repost    ? `<span class="tag tag-repost">🔄 Reposted ${dupeInfo.repost_instances?.length || ''}x</span>` : '',
+    scam.length           ? `<span class="tag tag-scam">⚠ ${scam.length} Scam Signal${scam.length>1?'s':''}</span>` : '',
+  ].filter(Boolean).join('');
+
+  const drawerHTML = hasDrawer ? `
+    <div class="jcard-footer">
+      <button class="drawer-toggle">
+        <span>Evidence &amp; caveats</span>
+        <span class="drawer-arrow">▾</span>
+      </button>
+      <div class="drawer-content">
+        ${reasons.length ? `
+          <div class="drawer-section">
+            <div class="drawer-label">Why this was flagged</div>
+            <ul class="drawer-list">
+              ${reasons.map(r => `<li class="reason-item">${esc(r)}</li>`).join('')}
+            </ul>
+          </div>` : ''}
+        ${scam.length ? `
+          <div class="drawer-section">
+            <div class="drawer-label">Scam language detected</div>
+            <ul class="drawer-list">
+              ${scam.map(s => `<li class="scam-item">${esc(s.label)}</li>`).join('')}
+            </ul>
+          </div>` : ''}
+        ${evidence.length ? `
+          <div class="drawer-section">
+            <div class="drawer-label">What we checked</div>
+            <ul class="drawer-list">
+              ${evidence.map(e => `<li class="evidence-item">${esc(e)}</li>`).join('')}
+            </ul>
+          </div>` : ''}
+        ${caveats.length ? `
+          <div class="drawer-section">
+            <div class="drawer-label">⚠ Important caveats — read before deciding</div>
+            <ul class="drawer-list">
+              ${caveats.map(cv => `<li class="caveat-item">${esc(cv)}</li>`).join('')}
+            </ul>
+          </div>` : ''}
+      </div>
+    </div>` : '';
+
+  return `
+  <div class="jcard">
+    <div class="jcard-body">
+      <div class="jcard-main">
+        <div class="jcard-title">${esc(job.title || '—')}</div>
+        <div class="jcard-meta">
+          <span>🏢 ${esc(job.company || '—')}</span>
+          ${job.location  ? `<span>📍 ${esc(job.location)}</span>` : ''}
+          ${job.posted_date ? `<span>📅 ${esc(job.posted_date)}</span>` : ''}
+          ${job.domain ? `<span>🌐 ${esc(job.domain)}</span>` : `<span style="color:var(--red)">⚠ no domain</span>`}
+          ${job.official_jobs_count != null ? `<span>📋 ${job.official_jobs_count} official listings found</span>` : ''}
+        </div>
+        ${tags ? `<div class="tag-row">${tags}</div>` : ''}
+        <div class="signals">
+          ${onSigs.map(s  => `<span class="sig sig-on">⚑ ${esc(s.label)}</span>`).join('')}
+          ${offSigs.map(s => `<span class="sig sig-off">✓ ${esc(s.label)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="score-wrap">
+        <div class="score-ring">
+          <svg width="62" height="62" viewBox="0 0 62 62">
+            <circle class="ring-track" cx="31" cy="31" r="${r}" />
+            <circle class="ring-fill" cx="31" cy="31" r="${r}"
+              stroke="${c.hex}"
+              stroke-dasharray="${circ.toFixed(2)}"
+              stroke-dashoffset="${off.toFixed(2)}" />
+          </svg>
+          <div class="score-num" style="color:${c.hex}">${job.ghost_score}</div>
+        </div>
+        <div class="verdict-label" style="color:${c.hex}">${job.verdict}</div>
+        <div class="confidence-pill conf-${job.confidence || 'LOW'}">${job.confidence || 'LOW'} conf.</div>
+      </div>
+    </div>
+    ${drawerHTML}
+  </div>`;
+}
+
+// ── Filters ─────────────────────────────────────────────
+document.querySelectorAll('.filter-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderJobs();
+  });
+});
+document.getElementById('searchBox').addEventListener('input', renderJobs);
+
+// ── Export ───────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click', () => {
+  if (currentJobId) { window.location.href = `${API}/api/export/${currentJobId}`; return; }
+  // local export
+  const rows = [['title','company','location','ghost_score','verdict','confidence','reasons','is_duplicate','is_repost','scam_count']];
+  allResults.forEach(r => rows.push([
+    r.title, r.company, r.location, r.ghost_score, r.verdict, r.confidence,
+    (r.reasons||[]).join('; '),
+    r.duplicate_info?.is_duplicate || false,
+    r.duplicate_info?.is_repost    || false,
+    (r.scam_indicators||[]).length,
+  ]));
+  const csv = rows.map(r => r.map(c => `"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download: 'ghost_jobs.csv' });
+  a.click();
+});
+
+// ── Reset ────────────────────────────────────────────────
+document.getElementById('resetBtn').addEventListener('click', resetUI);
+function resetUI() {
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('progressSection').style.display = 'none';
+  document.getElementById('uploadSection').style.display = 'block';
+  analyzeBtn.disabled = true;
+  selectedFile = null; fileInput.value = '';
+  dropZone.querySelector('.drop-title').textContent = 'Drop your CSV file here';
+  dropZone.querySelector('.drop-sub').textContent = 'or click to browse — .csv files only · max 200 rows';
+  currentJobId = null; allResults = [];
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function scrollToTop() { window.scrollTo({top:0, behavior:'smooth'}); return false; }
+
+// ── Why grid ─────────────────────────────────────────────
+async function loadWhyGrid() {
+  let reasons;
+  try {
+    reasons = await fetch(`${API}/api/why-ghost-jobs`).then(r => r.json());
+  } catch {
+    reasons = embeddedReasons();
+  }
+  document.getElementById('whyGrid').innerHTML = reasons.map(r => `
+    <div class="why-card">
+      <div class="why-card-header">
+        <div class="why-card-title">${esc(r.title)}</div>
+        <span class="why-prevalence">${esc(r.prevalence)}</span>
+      </div>
+      <p>${esc(r.description)}</p>
+    </div>
+  `).join('');
+}
+loadWhyGrid();
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg, ms=3200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ── Util ──────────────────────────────────────────────────
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Embedded fallbacks ────────────────────────────────────
+function embeddedReasons() {
+  return [
+    { title:"Building a Talent Pipeline", prevalence:"Very common", description:"Companies collect résumés speculatively even when no role is open, so they have a pool of pre-screened candidates ready if a position opens. Your application becomes a future asset for them, not a current opportunity for you." },
+    { title:"Signalling Growth to Investors", prevalence:"Common at startups", description:"Active job postings are publicly visible signals of expansion. Companies sometimes post roles they don't plan to fill immediately to project a growth narrative to investors, press, or competitors." },
+    { title:"Keeping Options Open", prevalence:"Very common", description:"Leadership may 'approve in principle' a hire but not commit budget. The posting stays live indefinitely while internal decisions are pending — with no notification to applicants." },
+    { title:"Internal HR Compliance", prevalence:"Extremely common in large orgs", description:"Many companies require a public posting before promoting internally or hiring a pre-selected candidate. Your application will not be considered — the decision is already made." },
+    { title:"Maintaining Posting Activity", prevalence:"Common", description:"Job board algorithms reward active posters with visibility. Some companies re-post the same role repeatedly to stay near the top of results, even when the role is filled or frozen." },
+    { title:"Salary & Market Research", prevalence:"Less common but documented", description:"Posting a role and collecting applications is a free way to gauge market salary expectations and skill availability. You become unpaid market research data." },
+  ];
+}
+
+function embeddedDemo() {
+  return {
+    summary: { total:5, high_risk:1, suspicious:2, low_risk:1, likely_real:1, avg_score:46.8, duplicates:1, reposts:1, scam_flags:1 },
+    results: [
+      { title:"Senior Software Engineer", company:"Acme Corp", location:"New York, NY", posted_date:"2024-08-10", ghost_score:78, verdict:"HIGH RISK", verdict_color:"red", confidence:"HIGH", confidence_note:"Multiple data points gathered", reasons:["No title match found on official careers page","Posting is 248 days old"], evidence:["Domain resolved: acmecorp.com","Careers page found at acmecorp.com/careers","Searched 12 official listings — best match was 34%"], caveats:["The role may exist on a third-party ATS not scraped by this tool."], scam_indicators:[], duplicate_info:{}, domain:"acmecorp.com", careers_url:"https://acmecorp.com/careers", official_jobs_count:12, signals:[{id:"not_on_site",label:"No title match on site",pts:30,triggered:true},{id:"stale",label:"Very stale (248d old)",pts:20,triggered:true},{id:"no_apply",label:"No apply link",pts:8,triggered:true},{id:"duplicate",label:"No duplicates",pts:10,triggered:false},{id:"scam",label:"No scam language",pts:25,triggered:false}] },
+      { title:"Marketing Manager", company:"TechFlow Inc", location:"Remote", posted_date:"2024-11-05", ghost_score:55, verdict:"SUSPICIOUS", verdict_color:"orange", confidence:"MEDIUM", confidence_note:"Some evidence gathered", reasons:["Weak title match on official site (61%)","Posting is 160 days old","Same role has been reposted 2 times"], evidence:["Domain resolved: techflow.io","Fuzzy title match: 61% — ambiguous","Apply link present"], caveats:["Reposting can also indicate a hard-to-fill role, not a ghost job."], scam_indicators:[], duplicate_info:{is_repost:true, repost_instances:[{index:4,date:"2024-09-15",title:"Marketing Manager"}]}, domain:"techflow.io", careers_url:"https://techflow.io/jobs", official_jobs_count:7, signals:[{id:"weak_match",label:"Weak match (61%)",pts:12,triggered:true},{id:"stale",label:"Aging (160d old)",pts:10,triggered:true},{id:"repost",label:"Reposted 2x",pts:12,triggered:true},{id:"scam",label:"No scam language",pts:25,triggered:false}] },
+      { title:"Work From Home — Earn $800/day, No Experience!", company:"QuickHire Solutions", location:"Remote", posted_date:"2025-01-18", ghost_score:66, verdict:"SUSPICIOUS", verdict_color:"orange", confidence:"MEDIUM", confidence_note:"Scam language present", reasons:["Suspicious language: Unrealistic daily pay claim","Suspicious language: WFH + no experience combo","Could not resolve company website"], evidence:["Could not resolve company domain — careers check skipped"], caveats:["Scam patterns are indicative, not definitive."], scam_indicators:[{label:"Unrealistic daily pay claim"},{label:"WFH + no experience combo"},{label:"Vague experience requirement"}], duplicate_info:{}, domain:null, careers_url:null, official_jobs_count:null, signals:[{id:"no_domain",label:"Domain not found",pts:25,triggered:true},{id:"no_apply",label:"No apply link",pts:8,triggered:true},{id:"scam",label:"3 scam indicator(s)",pts:24,triggered:true}] },
+      { title:"Data Analyst", company:"DataBridge", location:"Austin, TX", posted_date:"2025-02-15", ghost_score:18, verdict:"LIKELY REAL", verdict_color:"green", confidence:"HIGH", confidence_note:"Multiple data points gathered", reasons:[], evidence:["Domain resolved: databridge.com","Strong title match (94%): 'Data Analyst – Operations'","Apply link present","Posted 57 days ago — within normal range"], caveats:[], scam_indicators:[], duplicate_info:{}, domain:"databridge.com", careers_url:"https://databridge.com/jobs", official_jobs_count:9, signals:[{id:"no_domain",label:"Domain not found",pts:25,triggered:false},{id:"not_on_site",label:"Title found on site",pts:30,triggered:false},{id:"stale",label:"Recent (57d old)",pts:20,triggered:false},{id:"no_apply",label:"Apply link present",pts:8,triggered:false},{id:"scam",label:"No scam language",pts:25,triggered:false}] },
+      { title:"Senior Software Engineer", company:"Acme Corp", location:"New York, NY", posted_date:"2024-08-10", ghost_score:88, verdict:"HIGH RISK", verdict_color:"red", confidence:"HIGH", confidence_note:"Multiple data points — duplicate detected", reasons:["No title match on official site","Very stale posting","Exact duplicate in uploaded CSV"], evidence:["Domain resolved: acmecorp.com","Careers page found","Searched 12 listings — best match 34%"], caveats:["May exist on third-party ATS."], scam_indicators:[], duplicate_info:{is_duplicate:true,duplicate_count:2,duplicate_indices:[0]}, domain:"acmecorp.com", careers_url:"https://acmecorp.com/careers", official_jobs_count:12, signals:[{id:"not_on_site",label:"No title match on site",pts:30,triggered:true},{id:"stale",label:"Very stale (248d old)",pts:20,triggered:true},{id:"duplicate",label:"Duplicate (2x in batch)",pts:10,triggered:true}] },
+    ]
+  };
+}
+</script>
+</body>
+</html>
