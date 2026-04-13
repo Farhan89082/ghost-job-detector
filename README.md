@@ -1,6 +1,6 @@
 # 👻 Ghost Job Detector v2
 
-> \\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\*Expose ghost jobs before you waste time applying — with confidence levels and evidence, not false certainty.\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\*
+> *Expose ghost jobs before you waste time applying — with confidence levels and evidence, not false certainty.*
 
 A free, open-source tool that analyzes job listings from a CSV upload, cross-references each one against the company's official careers page, and returns a **Ghost Score (0–100)** along with the evidence gathered, confidence level, and caveats — so you can make an informed decision, not a snap judgement.
 
@@ -38,7 +38,7 @@ Always verify independently. This tool is a starting point for your own research
 
 !\[Why Ghost Jobs](docs/Screenshot%20Front%20page%203.png)
 
-\---
+\
 
 ## 🚀 Quick Start
 
