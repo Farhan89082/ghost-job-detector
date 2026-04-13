@@ -1,6 +1,6 @@
 # 👻 Ghost Job Detector v2
 
-> \\\\\\\*\\\\\\\*Expose ghost jobs before you waste time applying — with confidence levels and evidence, not false certainty.\\\\\\\*\\\\\\\*
+> \\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\*Expose ghost jobs before you waste time applying — with confidence levels and evidence, not false certainty.\\\\\\\\\\\\\\\*\\\\\\\\\\\\\\\*
 
 A free, open-source tool that analyzes job listings from a CSV upload, cross-references each one against the company's official careers page, and returns a **Ghost Score (0–100)** along with the evidence gathered, confidence level, and caveats — so you can make an informed decision, not a snap judgement.
 
@@ -32,11 +32,11 @@ Always verify independently. This tool is a starting point for your own research
 
 
 
-!\[Hero](docs/Screenshot\_Frontpage1.png)
+!\[Hero](docs/Screenshot%20Front%20page%201.png)
 
-!\[Upload](docs/Screenshot\_Frontpage2.png)
+!\[Upload](docs/Screenshot%20Front%20page%202.png)
 
-!\[Why Ghost Jobs](docs/Screenshot\_Frontpage3.png)
+!\[Why Ghost Jobs](docs/Screenshot%20Front%20page%203.png)
 
 \---
 
@@ -49,7 +49,7 @@ Always verify independently. This tool is a starting point for your own research
 ### 1\. Clone
 
 ```bash
-git clone https://github.com/YOUR\\\\\\\_USERNAME/ghost-job-detector.git
+git clone https://github.com/YOUR\\\\\\\\\\\\\\\_USERNAME/ghost-job-detector.git
 cd ghost-job-detector
 ```
 
@@ -78,8 +78,8 @@ Click **"Try Demo Data"** to explore the UI without a backend running.
 |`title`|✅|Job title|
 |`company`|✅|Company name|
 |`location`|Optional|City, state|
-|`posted\\\\\\\_date`|Optional|Improves stale-detection|
-|`apply\\\\\\\_link`|Optional|Checks for a real application URL|
+|`posted\\\\\\\\\\\\\\\_date`|Optional|Improves stale-detection|
+|`apply\\\\\\\\\\\\\\\_link`|Optional|Checks for a real application URL|
 |`description`|Optional|Enables scam language detection|
 
 Column names are flexible — `job title`, `Job Title`, `jobtitle` all map correctly.
@@ -117,9 +117,9 @@ ghost-job-detector/
 │   └── index.html          # Full dashboard (single file, no build step)
 ├── data/
 │   └── samples/
-│       └── sample\\\\\\\_jobs.csv
+│       └── sample\\\\\\\\\\\\\\\_jobs.csv
 ├── tests/
-│   └── test\\\\\\\_detector.py    # 15 unit tests
+│   └── test\\\\\\\\\\\\\\\_detector.py    # 15 unit tests
 └── README.md
 ```
 
@@ -129,7 +129,7 @@ ghost-job-detector/
 
 |Method|Endpoint|Description|
 |-|-|-|
-|POST|`/api/upload`|Upload CSV → returns `job\\\\\\\_id`|
+|POST|`/api/upload`|Upload CSV → returns `job\\\\\\\\\\\\\\\_id`|
 |GET|`/api/status/:id`|Poll progress|
 |GET|`/api/results/:id`|Full results JSON|
 |GET|`/api/export/:id`|CSV download|
