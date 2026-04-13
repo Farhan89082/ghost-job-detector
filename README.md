@@ -4,7 +4,7 @@
 
 A free, open-source tool that analyzes job listings from a CSV upload, cross-references each one against the company's official careers page, and returns a **Ghost Score (0–100)** along with the evidence gathered, confidence level, and caveats — so you can make an informed decision, not a snap judgement.
 
-\---
+
 
 ## ⚠️ Important Disclaimer
 
@@ -17,7 +17,7 @@ A free, open-source tool that analyzes job listings from a CSV upload, cross-ref
 
 Always verify independently. This tool is a starting point for your own research.
 
-\---
+
 
 ## ✨ What's new in v2
 
@@ -38,7 +38,6 @@ Always verify independently. This tool is a starting point for your own research
 
 !\[Why Ghost Jobs](docs/Screenshot%20Front%20page%203.png)
 
-\
 
 ## 🚀 Quick Start
 
@@ -69,7 +68,7 @@ python app.py
 
 Click **"Try Demo Data"** to explore the UI without a backend running.
 
-\---
+
 
 ## 📋 CSV Format
 
@@ -84,7 +83,7 @@ Click **"Try Demo Data"** to explore the UI without a backend running.
 
 Column names are flexible — `job title`, `Job Title`, `jobtitle` all map correctly.
 
-\---
+
 
 ## 🧠 Scoring Signals
 
@@ -103,7 +102,6 @@ Column names are flexible — `job title`, `Job Title`, `jobtitle` all map corre
 
 **Confidence:** HIGH (3+ evidence items) · MEDIUM (1–2 items) · LOW (limited data)
 
-\---
 
 ## 🗂️ Structure
 
@@ -123,7 +121,6 @@ ghost-job-detector/
 └── README.md
 ```
 
-\---
 
 ## 🔧 API
 
@@ -136,7 +133,6 @@ ghost-job-detector/
 |GET|`/api/demo`|Demo data|
 |GET|`/api/why-ghost-jobs`|Educational content JSON|
 
-\---
 
 ## 🔮 Future roadmap (contributions welcome)
 
@@ -147,13 +143,11 @@ ghost-job-detector/
 * \[ ] **Company reputation scores** — aggregate ghost-job history per company over time
 * \[ ] **Docker deployment** — one-command self-hosting
 
-\---
 
 ## 📜 License
 
 MIT — free to use, fork, and build on.
 
-\---
 
 ## 🙏 Why this exists
 
